@@ -34,10 +34,44 @@ BINARY_DIR="..\\..\\..\\VSCode-win32-${VSCODE_ARCH}"
 LICENSE_DIR="..\\..\\..\\vscode"
 PROGRAM_FILES_86=$( env | sed -n 's/^ProgramFiles(x86)=//p' )
 
-if [[ -z "${1}" ]]; then
-	OUTPUT_BASE_FILENAME="VSCodium-${VSCODE_ARCH}-${RELEASE_VERSION}"
+# Try to detect installed Windows SDK version dynamically and override default
+DETECTED_SDK_VERSION=$( powershell.exe -NoLogo -NoProfile -Command "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; \$bin = '${PROGRAM_FILES_86}\\Windows Kits\\${WIN_SDK_MAJOR_VERSION}\\bin'; if (Test-Path \$bin) { Get-ChildItem -Name -Path \$bin -ErrorAction SilentlyContinue | Where-Object { \$_ -match '^\d+\.\d+\.\d+\.\d+$' } | Sort-Object {[version]\$_} | Select-Object -Last 1 }" )
+DETECTED_SDK_VERSION="${DETECTED_SDK_VERSION%%[$'\r\n']*}"
+if [[ -n "${DETECTED_SDK_VERSION}" && -d "${PROGRAM_FILES_86}\\Windows Kits\\${WIN_SDK_MAJOR_VERSION}\\bin\\${DETECTED_SDK_VERSION}" ]]; then
+  WIN_SDK_FULL_VERSION="${DETECTED_SDK_VERSION}"
+fi
+
+RAW_ARG="${1:-}"
+# Only accept the explicit label we support; ignore inherited CLI flags like -sop
+if [[ "${RAW_ARG}" == "updates-disabled" ]]; then
+    LABEL_ARG="${RAW_ARG}"
 else
-	OUTPUT_BASE_FILENAME="VSCodium-${VSCODE_ARCH}-${1}-${RELEASE_VERSION}"
+    LABEL_ARG=""
+fi
+
+if [[ -z "${LABEL_ARG}" ]]; then
+    OUTPUT_BASE_FILENAME="VSCodium-${VSCODE_ARCH}-${RELEASE_VERSION}"
+else
+    OUTPUT_BASE_FILENAME="VSCodium-${VSCODE_ARCH}-${LABEL_ARG}-${RELEASE_VERSION}"
+fi
+
+# Ensure RELEASE_VERSION is set when running packaging-only flows
+if [[ -z "${RELEASE_VERSION}" ]]; then
+  if [[ -f "${BINARY_DIR}/resources/app/package.json" ]]; then
+    RELEASE_VERSION=$( jq -r '.version // empty' "${BINARY_DIR}/resources/app/package.json" )
+  fi
+fi
+
+# Fallback if still empty
+if [[ -z "${RELEASE_VERSION}" ]]; then
+  RELEASE_VERSION="0.0.0"
+fi
+
+# Recompute OUTPUT_BASE_FILENAME now that RELEASE_VERSION is ensured
+if [[ -z "${LABEL_ARG}" ]]; then
+    OUTPUT_BASE_FILENAME="VSCodium-${VSCODE_ARCH}-${RELEASE_VERSION}"
+else
+    OUTPUT_BASE_FILENAME="VSCodium-${VSCODE_ARCH}-${LABEL_ARG}-${RELEASE_VERSION}"
 fi
 
 if [[ "${VSCODE_ARCH}" == "ia32" ]]; then

@@ -18,6 +18,16 @@ cd vscode || { echo "'vscode' dir not found"; exit 1; }
 
 ../update_settings.sh
 
+# Ensure @electron/get resolves to a CommonJS-compatible version for @vscode/gulp-electron
+# This avoids "ERR_REQUIRE_ESM" when gulp-electron requires @electron/get.
+if command -v jq >/dev/null 2>&1; then
+  tmp=$(jq '
+    .overrides = (.overrides // {}) |
+    .overrides["@electron/get"] = "2.0.2" |
+    .overrides["@vscode/gulp-electron"] = ((.overrides["@vscode/gulp-electron"] // {}) + {"@electron/get":"2.0.2"})
+  ' package.json) && echo "${tmp}" > package.json && unset tmp
+fi
+
 # apply patches
 { set +x; } 2>/dev/null
 

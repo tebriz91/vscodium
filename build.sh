@@ -19,7 +19,11 @@ if [[ "${SHOULD_BUILD}" == "yes" ]]; then
 
   npm run gulp compile-build-without-mangling
   npm run gulp compile-extension-media
-  npm run gulp compile-extensions-build
+  if [[ "${SKIP_MARKETPLACE_EXTENSIONS}" != "yes" ]]; then
+    npm run gulp compile-extensions-build || export EXT_BUILD_FAILED=yes
+  else
+    echo "Skipping compile-extensions-build due to SKIP_MARKETPLACE_EXTENSIONS=yes"
+  fi
   npm run gulp minify-vscode
 
   if [[ "${OS_NAME}" == "osx" ]]; then
@@ -63,6 +67,39 @@ if [[ "${SHOULD_BUILD}" == "yes" ]]; then
     fi
 
     VSCODE_PLATFORM="linux"
+  fi
+
+  # Fallback: if marketplace extensions were skipped or failed, inject local VSIX into built app
+  if [[ "${SKIP_MARKETPLACE_EXTENSIONS}" == "yes" || "${EXT_BUILD_FAILED}" == "yes" ]]; then
+    echo "Using extension injection fallback (SKIP_MARKETPLACE_EXTENSIONS=${SKIP_MARKETPLACE_EXTENSIONS}, EXT_BUILD_FAILED=${EXT_BUILD_FAILED})"
+    if compgen -G "../extensions-extra/*.vsix" > /dev/null; then
+      out_dir="../VSCode-${VSCODE_PLATFORM}-${VSCODE_ARCH}/resources/app/extensions"
+      mkdir -p "${out_dir}"
+      for vsix in ../extensions-extra/*.vsix; do
+        if command -v 7z.exe >/dev/null 2>&1; then
+          ext_id=$(7z.exe x -so "$vsix" extension/package.json 2>/dev/null | jq -r '.publisher+"."+.name')
+        else
+          ext_id=$(unzip -p "$vsix" 'extension/package.json' 2>/dev/null | jq -r '.publisher+"."+.name')
+        fi
+        [[ -z "$ext_id" || "$ext_id" == "null.null" ]] && continue
+        tmpdir=$(mktemp -d)
+        if command -v 7z.exe >/dev/null 2>&1; then
+          7z.exe x -y "$vsix" -o"$tmpdir" >/dev/null
+        else
+          unzip -q "$vsix" -d "$tmpdir"
+        fi
+        if [[ -d "$tmpdir/extension" ]]; then
+          shopt -s dotglob nullglob
+          mkdir -p "${out_dir}/$ext_id"
+          cp -R "$tmpdir/extension/"* "${out_dir}/$ext_id/" || true
+          shopt -u dotglob nullglob
+        else
+          mkdir -p "${out_dir}/$ext_id"
+          cp -R "$tmpdir/"* "${out_dir}/$ext_id/" || true
+        fi
+        rm -rf "$tmpdir"
+      done
+    fi
   fi
 
   if [[ "${SHOULD_BUILD_REH}" != "no" ]]; then

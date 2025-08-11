@@ -214,32 +214,32 @@ if [[ "${VSCODE_QUALITY}" == "insider" ]]; then
   setpath "product" "win32ContextMenu.x64.clsid" "90AAD229-85FD-43A3-B82D-8598A88829CF"
   setpath "product" "win32ContextMenu.arm64.clsid" "7544C31C-BDBF-4DDF-B15E-F73A46D6723D"
 else
-  setpath "product" "nameShort" "VSCodium"
-  setpath "product" "nameLong" "VSCodium"
-  setpath "product" "applicationName" "codium"
+  setpath "product" "nameShort" "VSRAT"
+  setpath "product" "nameLong" "VSRAT"
+  setpath "product" "applicationName" "vsrat"
   setpath "product" "linuxIconName" "vscodium"
   setpath "product" "quality" "stable"
-  setpath "product" "urlProtocol" "vscodium"
+  setpath "product" "urlProtocol" "vsrat"
   setpath "product" "serverApplicationName" "codium-server"
   setpath "product" "serverDataFolderName" ".vscodium-server"
   setpath "product" "darwinBundleIdentifier" "com.vscodium"
-  setpath "product" "win32AppUserModelId" "VSCodium.VSCodium"
-  setpath "product" "win32DirName" "VSCodium"
-  setpath "product" "win32MutexName" "vscodium"
-  setpath "product" "win32NameVersion" "VSCodium"
-  setpath "product" "win32RegValueName" "VSCodium"
-  setpath "product" "win32ShellNameShort" "VSCodium"
-  setpath "product" "win32AppId" "{{763CBF88-25C6-4B10-952F-326AE657F16B}"
-  setpath "product" "win32x64AppId" "{{88DA3577-054F-4CA1-8122-7D820494CFFB}"
-  setpath "product" "win32arm64AppId" "{{67DEE444-3D04-4258-B92A-BC1F0FF2CAE4}"
-  setpath "product" "win32UserAppId" "{{0FD05EB4-651E-4E78-A062-515204B47A3A}"
-  setpath "product" "win32x64UserAppId" "{{2E1F05D1-C245-4562-81EE-28188DB6FD17}"
-  setpath "product" "win32arm64UserAppId" "{{57FD70A5-1B8D-4875-9F40-C5553F094828}"
+  setpath "product" "win32AppUserModelId" "VSRAT.VSRAT"
+  setpath "product" "win32DirName" "VSRAT"
+  setpath "product" "win32MutexName" "vsrat"
+  setpath "product" "win32NameVersion" "VSRAT"
+  setpath "product" "win32RegValueName" "VSRAT"
+  setpath "product" "win32ShellNameShort" "VSRAT"
+  setpath "product" "win32AppId" "{{4E867DC9-54B3-42AA-88A4-74768B038469}"
+  setpath "product" "win32x64AppId" "{{082B546E-4991-4E42-B886-E46FB0DBF77B}"
+  setpath "product" "win32arm64AppId" "{{3A814943-401D-4F75-BC59-4739673FAFCD}"
+  setpath "product" "win32UserAppId" "{{FB22971C-754D-4BB0-99A2-9ADF82F2F316}"
+  setpath "product" "win32x64UserAppId" "{{C4CD5009-A387-4A15-B41B-C9AC34223249}"
+  setpath "product" "win32arm64UserAppId" "{{FE8DCC99-B4BB-4C2E-BCD8-7A44C3253DBE}"
   setpath "product" "tunnelApplicationName" "codium-tunnel"
   setpath "product" "win32TunnelServiceMutex" "vscodium-tunnelservice"
   setpath "product" "win32TunnelMutex" "vscodium-tunnel"
-  setpath "product" "win32ContextMenu.x64.clsid" "D910D5E6-B277-4F4A-BDC5-759A34EEE25D"
-  setpath "product" "win32ContextMenu.arm64.clsid" "4852FC55-4A84-4EA1-9C86-D53BE3DF83C0"
+  setpath "product" "win32ContextMenu.x64.clsid" "17D03840-CFAC-4AEE-92D7-E901CEAEC54D"
+  setpath "product" "win32ContextMenu.arm64.clsid" "148DF40F-9B05-4D6C-9152-5611E3C334BE"
 fi
 
 jsonTmp=$( jq -s '.[0] * .[1]' product.json ../product.json )
@@ -269,10 +269,10 @@ replace "s|\\[\\/\\* BUILTIN_ANNOUNCEMENTS \\*\\/\\]|$( tr -d '\n' < ../announce
 
 ../undo_telemetry.sh
 
-replace 's|Microsoft Corporation|VSCodium|' build/lib/electron.js
-replace 's|Microsoft Corporation|VSCodium|' build/lib/electron.ts
-replace 's|([0-9]) Microsoft|\1 VSCodium|' build/lib/electron.js
-replace 's|([0-9]) Microsoft|\1 VSCodium|' build/lib/electron.ts
+replace 's|Microsoft Corporation|VSRAT|' build/lib/electron.js
+replace 's|Microsoft Corporation|VSRAT|' build/lib/electron.ts
+replace 's|([0-9]) Microsoft|\1 VSRAT|' build/lib/electron.js
+replace 's|([0-9]) Microsoft|\1 VSRAT|' build/lib/electron.ts
 
 if [[ "${OS_NAME}" == "linux" ]]; then
   # microsoft adds their apt repo to sources
@@ -309,8 +309,8 @@ if [[ "${OS_NAME}" == "linux" ]]; then
   sed -i 's|Visual Studio Code|VSCodium|'  resources/linux/rpm/code.spec.template
 elif [[ "${OS_NAME}" == "windows" ]]; then
   # code.iss
-  sed -i 's|https://code.visualstudio.com|https://vscodium.com|' build/win32/code.iss
-  sed -i 's|Microsoft Corporation|VSCodium|' build/win32/code.iss
+  sed -i 's|https://code.visualstudio.com|https://vsrat.com|' build/win32/code.iss
+  sed -i 's|Microsoft Corporation|VSRAT|' build/win32/code.iss
 fi
 
 cd ..

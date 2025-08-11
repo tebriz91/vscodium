@@ -6,10 +6,10 @@
 ###
 
 export APP_NAME="VSRAT"
-export ASSETS_REPOSITORY="vsrat-com/app"
+export ASSETS_REPOSITORY="VSCodium/vscodium"
 export BINARY_NAME="vsrat"
 export CI_BUILD="no"
-export GH_REPO_PATH="vsrat-com/app"
+export GH_REPO_PATH="VSCodium/vscodium"
 export ORG_NAME="VSRAT"
 export SHOULD_BUILD="yes"
 export SKIP_ASSETS="yes"

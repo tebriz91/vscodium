@@ -65,40 +65,6 @@ for file in ../patches/user/*.patch; do
   fi
 done
 
-# Fast local unpack for development runs
-if [[ "${SKIP_MARKETPLACE_EXTENSIONS}" == "yes" ]]; then
-  if compgen -G "../extensions-extra/*.vsix" > /dev/null; then
-    echo "Unpacking local VSIX into extensions/ ..."
-    mkdir -p extensions
-    for vsix in ../extensions-extra/*.vsix; do
-      ext_id=$(7z.exe l "$vsix" >/dev/null 2>&1 && \
-               7z.exe x -so "$vsix" extension/package.json | jq -r '.publisher+"."+.name' || \
-               unzip -p "$vsix" 'extension/package.json' | jq -r '.publisher+"."+.name')
-      [[ -z "$ext_id" || "$ext_id" == "null.null" ]] && continue
-      rm -rf "extensions/$ext_id" && mkdir -p "extensions/$ext_id"
-      if command -v 7z.exe >/dev/null 2>&1; then
-        7z.exe x -y "$vsix" -o"extensions/$ext_id" >/dev/null
-      else
-        unzip -q "$vsix" -d "extensions/$ext_id"
-      fi
-      if [[ -f "extensions/$ext_id/extension/package.json" ]]; then
-        shopt -s dotglob nullglob
-        cp -R "extensions/$ext_id/extension/"* "extensions/$ext_id/" || true
-        rm -rf "extensions/$ext_id/extension"
-        shopt -u dotglob nullglob
-      fi
-    done
-  fi
-else
-  # Ensure previously unpacked copies are removed so they don't get picked up
-  if compgen -G "../extensions-extra/*.vsix" > /dev/null; then
-    for vsix in ../extensions-extra/*.vsix; do
-      ext_id=$(unzip -p "$vsix" 'extension/package.json' 2>/dev/null | jq -r '.publisher+"."+.name')
-      [[ -n "$ext_id" && -d "extensions/$ext_id" ]] && rm -rf "extensions/$ext_id"
-    done
-  fi
-fi
-
 set -x
 
 export ELECTRON_SKIP_BINARY_DOWNLOAD=1

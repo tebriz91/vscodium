@@ -19,11 +19,27 @@ if [[ "${SHOULD_BUILD}" == "yes" ]]; then
 
   npm run gulp compile-build-without-mangling
   npm run gulp compile-extension-media
-  if [[ "${SKIP_MARKETPLACE_EXTENSIONS}" != "yes" ]]; then
-    npm run gulp compile-extensions-build || export EXT_BUILD_FAILED=yes
-  else
-    echo "Skipping compile-extensions-build due to SKIP_MARKETPLACE_EXTENSIONS=yes"
+  # If BUILTIN_EXTENSIONS_EXCLUDE is set, pre-disable those marketplace built-ins
+  # so the compile-extensions-build step won't try to download them
+  if [[ -n "${BUILTIN_EXTENSIONS_EXCLUDE}" ]]; then
+    node -e '
+      const fs=require("fs"), path=require("path"), os=require("os");
+      const dstDir=path.join(os.homedir(), ".vscode-oss-dev", "extensions");
+      fs.mkdirSync(dstDir, { recursive: true });
+      const controlPath=path.join(dstDir, "control.json");
+      let control={};
+      try{ control=JSON.parse(fs.readFileSync(controlPath, "utf8")); }catch{}
+      const raw=(process.env.BUILTIN_EXTENSIONS_EXCLUDE||"").split(",").map(s=>s.trim()).filter(Boolean);
+      for(const id of raw){
+        control[id] = "disabled";
+        // If someone passed short folder names like "js-debug", also add ms-vscode.js-debug variants
+        if(!id.includes(".") && id === "js-debug") control["ms-vscode.js-debug"] = "disabled";
+      }
+      fs.writeFileSync(controlPath, JSON.stringify(control, null, 2));
+      console.log("Prepared built-in extensions control.json:", controlPath);
+    '
   fi
+  npm run gulp compile-extensions-build
   npm run gulp minify-vscode
 
   if [[ "${OS_NAME}" == "osx" ]]; then
@@ -69,37 +85,70 @@ if [[ "${SHOULD_BUILD}" == "yes" ]]; then
     VSCODE_PLATFORM="linux"
   fi
 
-  # Fallback: if marketplace extensions were skipped or failed, inject local VSIX into built app
-  if [[ "${SKIP_MARKETPLACE_EXTENSIONS}" == "yes" || "${EXT_BUILD_FAILED}" == "yes" ]]; then
-    echo "Using extension injection fallback (SKIP_MARKETPLACE_EXTENSIONS=${SKIP_MARKETPLACE_EXTENSIONS}, EXT_BUILD_FAILED=${EXT_BUILD_FAILED})"
-    if compgen -G "../extensions-extra/*.vsix" > /dev/null; then
-      out_dir="../VSCode-${VSCODE_PLATFORM}-${VSCODE_ARCH}/resources/app/extensions"
-      mkdir -p "${out_dir}"
-      for vsix in ../extensions-extra/*.vsix; do
-        if command -v 7z.exe >/dev/null 2>&1; then
-          ext_id=$(7z.exe x -so "$vsix" extension/package.json 2>/dev/null | jq -r '.publisher+"."+.name')
-        else
-          ext_id=$(unzip -p "$vsix" 'extension/package.json' 2>/dev/null | jq -r '.publisher+"."+.name')
+  # Targeted prune of specific built-in extensions (post-build, Windows-safe)
+  # Provide comma-separated IDs in BUILTIN_EXTENSIONS_EXCLUDE, e.g. "ms-python.python,ms-vscode.cpptools"
+  if [[ -n "${BUILTIN_EXTENSIONS_EXCLUDE}" ]]; then
+    out_dir="../VSCode-${VSCODE_PLATFORM}-${VSCODE_ARCH}/resources/app/extensions"
+    if [[ -d "${out_dir}" ]]; then
+      IFS=',' read -ra _exclude <<< "${BUILTIN_EXTENSIONS_EXCLUDE}"
+      for id in "${_exclude[@]}"; do
+        id="${id//[[:space:]]/}"
+        [[ -z "$id" ]] && continue
+        # Accept both folder names (e.g., "emmet") and publisher.name (e.g., "vscode.emmet" or "ms-vscode.js-debug")
+        candidates=("$id")
+        if [[ "$id" == *.* ]]; then
+          short_id="${id##*.}"
+          candidates+=("$short_id")
         fi
-        [[ -z "$ext_id" || "$ext_id" == "null.null" ]] && continue
-        tmpdir=$(mktemp -d)
-        if command -v 7z.exe >/dev/null 2>&1; then
-          7z.exe x -y "$vsix" -o"$tmpdir" >/dev/null
-        else
-          unzip -q "$vsix" -d "$tmpdir"
+        excluded_once="no"
+        for cand in "${candidates[@]}"; do
+          if [[ -d "${out_dir}/${cand}" ]]; then
+            echo "Excluding built-in extension: ${cand} (requested: ${id})"
+            tmp_root="$(mktemp -d 2>/dev/null || echo ".")"
+            tmp="${tmp_root}/${cand}._trash_$(date +%s)"
+            mv "${out_dir}/${cand}" "$tmp" 2>/dev/null || continue
+            # Delete synchronously to avoid packaging the renamed folder
+            rm -rf "$tmp"
+            excluded_once="yes"
+            break
+          fi
+        done
+        if [[ "$excluded_once" != "yes" ]]; then
+          echo "Warning: requested exclusion not found: ${id}"
         fi
-        if [[ -d "$tmpdir/extension" ]]; then
-          shopt -s dotglob nullglob
-          mkdir -p "${out_dir}/$ext_id"
-          cp -R "$tmpdir/extension/"* "${out_dir}/$ext_id/" || true
-          shopt -u dotglob nullglob
-        else
-          mkdir -p "${out_dir}/$ext_id"
-          cp -R "$tmpdir/"* "${out_dir}/$ext_id/" || true
-        fi
-        rm -rf "$tmpdir"
       done
     fi
+  fi
+
+  # Inject any local VSIX into the final app, if provided
+  if compgen -G "../extensions-extra/*.vsix" > /dev/null; then
+    echo "Injecting local VSIX into built app (EXT_BUILD_FAILED=${EXT_BUILD_FAILED})"
+    out_dir="../VSCode-${VSCODE_PLATFORM}-${VSCODE_ARCH}/resources/app/extensions"
+    mkdir -p "${out_dir}"
+    for vsix in ../extensions-extra/*.vsix; do
+      if command -v 7z.exe >/dev/null 2>&1; then
+        ext_id=$(7z.exe x -so "$vsix" extension/package.json 2>/dev/null | jq -r '.publisher+"."+.name')
+      else
+        ext_id=$(unzip -p "$vsix" 'extension/package.json' 2>/dev/null | jq -r '.publisher+"."+.name')
+      fi
+      [[ -z "$ext_id" || "$ext_id" == "null.null" ]] && continue
+      tmpdir=$(mktemp -d)
+      if command -v 7z.exe >/dev/null 2>&1; then
+        7z.exe x -y "$vsix" -o"$tmpdir" >/dev/null
+      else
+        unzip -q "$vsix" -d "$tmpdir"
+      fi
+      if [[ -d "$tmpdir/extension" ]]; then
+        shopt -s dotglob nullglob
+        mkdir -p "${out_dir}/$ext_id"
+        cp -R "$tmpdir/extension/"* "${out_dir}/$ext_id/" || true
+        shopt -u dotglob nullglob
+      else
+        mkdir -p "${out_dir}/$ext_id"
+        cp -R "$tmpdir/"* "${out_dir}/$ext_id/" || true
+      fi
+      rm -rf "$tmpdir"
+    done
   fi
 
   if [[ "${SHOULD_BUILD_REH}" != "no" ]]; then

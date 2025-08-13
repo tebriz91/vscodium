@@ -18,6 +18,57 @@ if [[ "${SHOULD_BUILD}" == "yes" ]]; then
   npm run valid-layers-check
 
   npm run gulp compile-build-without-mangling
+  # Temporarily hide local extensions from the source tree so they are not compiled or included
+  # Prefer KEEP mode if provided; otherwise fall back to EXCLUDE mode
+  if [[ -n "${BUILTIN_EXTENSIONS_KEEP}" || -n "${BUILTIN_EXTENSIONS_EXCLUDE}" ]]; then
+    EXT_OFF_DIR="$(pwd)/../.extensions_off"
+    rm -rf "${EXT_OFF_DIR}" && mkdir -p "${EXT_OFF_DIR}"
+    : > "${EXT_OFF_DIR}/.moved"
+
+    if [[ -n "${BUILTIN_EXTENSIONS_KEEP}" ]]; then
+      echo "Keeping only built-ins: ${BUILTIN_EXTENSIONS_KEEP}"
+      pushd extensions >/dev/null
+      KEEP_SET=",${BUILTIN_EXTENSIONS_KEEP},"
+      shopt -s dotglob nullglob
+      for d in */ ; do
+        d="${d%/}"
+        [[ "${d}" == "node_modules" ]] && continue
+        if [[ ",${KEEP_SET}," != *",${d},"* ]]; then
+          echo "Temporarily disabling local extension for build: ${d} (KEEP mode)"
+          mv "${d}" "${EXT_OFF_DIR}/${d}" 2>/dev/null || true
+          echo "${d}" >> "${EXT_OFF_DIR}/.moved"
+        fi
+      done
+      shopt -u dotglob nullglob
+      popd >/dev/null
+    else
+      IFS=',' read -ra _exclude <<< "${BUILTIN_EXTENSIONS_EXCLUDE}"
+      for id in "${_exclude[@]}"; do
+        id="${id//[[:space:]]/}"
+        [[ -z "${id}" ]] && continue
+        candidates=()
+        if [[ "${id}" == *.* ]]; then
+          short_id="${id##*.}"
+          candidates+=("${short_id}")
+        else
+          candidates+=("${id}")
+        fi
+        moved_once="no"
+        for cand in "${candidates[@]}"; do
+          if [[ -d "extensions/${cand}" ]]; then
+            echo "Temporarily disabling local extension for build: ${cand} (requested: ${id})"
+            mv "extensions/${cand}" "${EXT_OFF_DIR}/${cand}" 2>/dev/null || true
+            echo "${cand}" >> "${EXT_OFF_DIR}/.moved"
+            moved_once="yes"
+            break
+          fi
+        done
+        if [[ "${moved_once}" != "yes" ]]; then
+          echo "Note: local extension folder not found for exclusion: ${id}"
+        fi
+      done
+    fi
+  fi
   npm run gulp compile-extension-media
   # If BUILTIN_EXTENSIONS_EXCLUDE is set, pre-disable those marketplace built-ins
   # so the compile-extensions-build step won't try to download them
@@ -120,6 +171,16 @@ if [[ "${SHOULD_BUILD}" == "yes" ]]; then
     fi
   fi
 
+  # Optionally prune shared production deps bundle used by extensions to reduce size
+  # WARNING: Removing this may break extensions that rely on shared deps. Safe for minimalist sets (e.g., markdown-only).
+  if [[ "${PRUNE_EXTENSION_SHARED_NODE_MODULES}" == "yes" || "${DISABLE_EXTENSION_SHARED_NODE_MODULES}" == "yes" ]]; then
+    shared_nm_dir="../VSCode-${VSCODE_PLATFORM}-${VSCODE_ARCH}/resources/app/extensions/node_modules"
+    if [[ -d "${shared_nm_dir}" ]]; then
+      echo "Pruning shared extensions node_modules"
+      rm -rf "${shared_nm_dir}"
+    fi
+  fi
+
   # Inject any local VSIX into the final app, if provided
   if compgen -G "../extensions-extra/*.vsix" > /dev/null; then
     echo "Injecting local VSIX into built app (EXT_BUILD_FAILED=${EXT_BUILD_FAILED})"
@@ -159,6 +220,18 @@ if [[ "${SHOULD_BUILD}" == "yes" ]]; then
   if [[ "${SHOULD_BUILD_REH_WEB}" != "no" ]]; then
     npm run gulp minify-vscode-reh-web
     npm run gulp "vscode-reh-web-${VSCODE_PLATFORM}-${VSCODE_ARCH}-min-ci"
+  fi
+
+  # Restore any temporarily disabled local extensions
+  if [[ -f "../.extensions_off/.moved" ]]; then
+    while IFS= read -r moved || [[ -n "$moved" ]]; do
+      [[ -z "$moved" ]] && continue
+      if [[ -d "../.extensions_off/${moved}" ]]; then
+        echo "Restoring local extension: ${moved}"
+        mv "../.extensions_off/${moved}" "extensions/${moved}" 2>/dev/null || true
+      fi
+    done < "../.extensions_off/.moved"
+    rm -rf "../.extensions_off"
   fi
 
   cd ..

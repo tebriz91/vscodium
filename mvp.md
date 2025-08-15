@@ -36,13 +36,6 @@ Environment examples to enable this flow:
 $env:WIX = 'C:\Program Files (x86)\WiX Toolset v3.14\'
 [Environment]::SetEnvironmentVariable('WIX', $env:WIX, 'User')
 
-# Optionally exclude specific default built‑ins (comma‑separated IDs)
-$env:BUILTIN_EXTENSIONS_EXCLUDE = 'ms-vscode.js-debug,ms-vscode.js-debug-companion,ms-vscode.vscode-js-profile-table,vscode.typescript-language-features,vscode.emmet,github,github-authentication,git,git-base,docker,python,go,cpp,csharp,java,rust,php,powershell,swift,groovy,julia,lua,ruby,r,perl,dart,typescript-basics,javascript,html,html-language-features,css,css-language-features,scss,less,xml,yaml,json,json-language-features,sql,shaderlab,hlsl,handlebars,pug,make,grunt,gulp,jake,restructuredtext,latex,terminal-suggest,tunnel-forwarding,objective-c,coffeescript,clojure,bat,ini,prompt-basics,razor,vb,types'
-# Remove node_modules after packaging (optional size reduction)
-$env:PRUNE_EXTENSION_SHARED_NODE_MODULES='yes'
-
-OR
-
 # Keep only (alternative to BUILTIN_EXTENSIONS_EXCLUDE)
 $env:BUILTIN_EXTENSIONS_KEEP = 'markdown-basics,markdown-language-features,markdown-math,notebook-renderers,simple-browser,media-preview,ipynb,diff,theme-seti'
 # Remove node_modules after packaging (optional size reduction)
@@ -66,6 +59,15 @@ $env:SHOULD_BUILD_EXE_SYS = 'no'
 ```bash
 # Bash / Git Bash
 ./dev/build.sh -p
+```
+
+```powershell
+# ------------ Alternative: Exclude specific built‑ins ----------------
+# Optionally exclude specific default built‑ins (comma‑separated IDs)
+$env:BUILTIN_EXTENSIONS_EXCLUDE = 'ms-vscode.js-debug,ms-vscode.js-debug-companion,ms-vscode.vscode-js-profile-table,vscode.typescript-language-features,vscode.emmet,github,github-authentication,git,git-base,docker,python,go,cpp,csharp,java,rust,php,powershell,swift,groovy,julia,lua,ruby,r,perl,dart,typescript-basics,javascript,html,html-language-features,css,css-language-features,scss,less,xml,yaml,json,json-language-features,sql,shaderlab,hlsl,handlebars,pug,make,grunt,gulp,jake,restructuredtext,latex,terminal-suggest,tunnel-forwarding,objective-c,coffeescript,clojure,bat,ini,prompt-basics,razor,vb,types'
+# Remove node_modules after packaging (optional size reduction)
+$env:PRUNE_EXTENSION_SHARED_NODE_MODULES='yes'
+# ---------------------------------------------------------------------
 ```
 
 Notes:

@@ -1,0 +1,9 @@
+{
+    "name": "vsrat-defaults-src",
+    "private": true,
+    "version": "0.0.1",
+    "description": "Build helper for VSRAT Defaults extension",
+    "scripts": {
+        "pack": "node ../tools/pack-vsix.js"
+    }
+}

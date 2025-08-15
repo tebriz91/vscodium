@@ -1,0 +1,52 @@
+{
+    "name": "vsrat-defaults",
+    "displayName": "VSRAT Defaults",
+    "publisher": "vsrat",
+    "version": "0.0.1",
+    "description": "Default configuration overrides for VSRAT",
+    "repository": {
+        "type": "git"
+    },
+    "license": "MIT",
+    "engines": {
+        "vscode": "^1.103.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "contributes": {
+        "configurationDefaults": {
+            "window.zoomLevel": 1,
+            "window.menuBarVisibility": "compact",
+            "window.commandCenter": false,
+            "workbench.colorTheme": "Markdown Writer - light",
+            "editor.fontWeight": "normal",
+            "editor.fontFamily": "Input Mono Narrow,Calibri,Helvetica",
+            "editor.fontLigatures": false,
+            "editor.fontSize": 15,
+            "editor.fontVariations": false,
+            "editor.lineNumbers": "on",
+            "editor.glyphMargin": false,
+            "editor.lineDecorationsWidth": 30,
+            "editor.wordWrap": "on",
+            "workbench.statusBar.visible": false,
+            "editor.unicodeHighlight.ambiguousCharacters": false,
+            "security.workspace.trust.enabled": true,
+            "security.workspace.trust.emptyWindow": true,
+            "extensions.ignoreRecommendations": true,
+            "extensions.autoCheckUpdates": false,
+            "extensions.autoUpdate": false,
+            "workbench.enableExperiments": false,
+            "telemetry.telemetryLevel": "off",
+            "update.mode": "none",
+            "workbench.editor.empty.hint": "hidden",
+            "workbench.startupEditor": "newUntitledFile",
+            "workbench.tips.enabled": false,
+            "editor.mouseWheelZoom": true,
+            "editor.minimap.size": "proportional",
+            "editor.minimap.scale": 2,
+            "editor.minimap.autohide": "mouseover",
+            "files.defaultLanguage": "markdown"
+        }
+    }
+}

@@ -183,6 +183,7 @@ else
   setpath "product" "nameShort" "VSRAT"
   setpath "product" "nameLong" "VSRAT"
   setpath "product" "applicationName" "vsrat"
+  setpath "product" "dataFolderName" ".vsrat"
   setpath "product" "linuxIconName" "vscodium"
   setpath "product" "quality" "stable"
   setpath "product" "urlProtocol" "vsrat"

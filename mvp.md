@@ -213,3 +213,44 @@ Notes:
 - Inno Setup 6.5.0 (https://jrsoftware.org/isdl.php#stable)
 
 See `docs/howto-build.md`.
+
+### Update branding assets via `icons/build_icons.sh`
+
+- Usage:
+  - Regenerate assets using your logo (PNG or SVG):
+    - `./icons/build_icons.sh -l /absolute/path/to/your_logo.(png|svg)`
+  - Optional: insider color set: `./icons/build_icons.sh -i -l /path/logo.png`
+  - The script prints tagged logs (`[build_icons] …`) describing what it will create/overwrite or skip.
+
+- What is always regenerated
+  - Workbench (top‑left) logo SVG: `src/${QUALITY}/src/vs/workbench/browser/media/code-icon.svg`
+    - If you pass an SVG: it is copied and normalized to width/height 1024.
+    - If you pass a raster (PNG): a 1024×1024 PNG is embedded as a data‑URI inside a minimal SVG wrapper.
+  - Linux app SVG: `src/${QUALITY}/resources/linux/code.svg` (kept in sync with the provided logo in the same way as above).
+
+- What is created only if missing (skipped when present)
+  - macOS: `src/${QUALITY}/resources/darwin/code.icns` (+ per‑type `.icns` in the same folder)
+  - Windows: `src/${QUALITY}/resources/win32/code.ico` (+ `code_70x70.png`, `code_150x150.png`, `inno-*.bmp` and per‑type `.ico`)
+  - Linux: `src/${QUALITY}/resources/linux/code.png` and `src/${QUALITY}/resources/linux/rpm/code.xpm`
+  - Server (web): `src/${QUALITY}/resources/server/favicon.ico`, `code-192.png`, `code-512.png`
+  - MSI artwork: `build/windows/msi/resources/${QUALITY}/wix-banner.bmp`, `wix-dialog.bmp`
+
+- Forcing regeneration
+  - Workbench SVG and Linux `code.svg` are always overwritten; no cleanup needed.
+  - Linux:
+    - Delete to force: `src/${QUALITY}/resources/linux/code.png`, `src/${QUALITY}/resources/linux/rpm/code.xpm`
+  - macOS:
+    - Delete to force: `src/${QUALITY}/resources/darwin/code.icns` (and any per‑type `.icns`)
+  - Windows:
+    - Delete to force: `src/${QUALITY}/resources/win32/code.ico`, `code_70x70.png`, `code_150x150.png`, `inno-*.bmp` (and any per‑type `.ico`)
+  - Server:
+    - Delete to force: `src/${QUALITY}/resources/server/favicon.ico`, `code-192.png`, `code-512.png`
+
+- Notes
+  - `QUALITY` defaults to `stable`; `-i` switches to `insider` (different color set).
+  - The script accepts absolute paths for `-l` and supports both SVG and PNG inputs.
+  - If generation fails, it falls back to stock assets under `icons/${QUALITY}/`.
+  - Example run:
+    ```bash
+    ./icons/build_icons.sh -l /home/you/brand.png
+    ```

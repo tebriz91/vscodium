@@ -8,12 +8,19 @@ set -e
 
 QUALITY="stable"
 COLOR="blue1"
+LOGO_PATH="icons/${QUALITY}/codium_cnl.svg"
+LOGO_BORDER_PATH="icons/${QUALITY}/codium_cnl_w80_b8.svg"
 
-while getopts ":i" opt; do
+while getopts ":il:" opt; do
   case "$opt" in
     i)
       export QUALITY="insider"
       export COLOR="orange1"
+      ;;
+    l)
+      # Allow overriding the source logo (PNG or SVG)
+      LOGO_PATH="${OPTARG}"
+      LOGO_BORDER_PATH="${OPTARG}"
       ;;
     *)
       ;;
@@ -36,9 +43,32 @@ check_programs "icns2png" "composite" "convert" "png2icns" "icotool" "rsvg-conve
 SRC_PREFIX=""
 VSCODE_PREFIX=""
 
+generate_logo_png() { # {{{
+  # Usage: generate_logo_png <source> <width> <height> <output> [background]
+  local SRC_FILE WIDTH HEIGHT OUT_FILE BGCOLOR EXT
+  SRC_FILE="$1"
+  WIDTH="$2"
+  HEIGHT="$3"
+  OUT_FILE="$4"
+  BGCOLOR="${5:-}"
+  EXT="${SRC_FILE##*.}"
+
+  if [[ "${EXT}" == "svg" ]]; then
+    if [[ -n "${BGCOLOR}" ]]; then
+      rsvg-convert -b "${BGCOLOR}" -w "${WIDTH}" -h "${HEIGHT}" "${SRC_FILE}" -o "${OUT_FILE}"
+    else
+      rsvg-convert -w "${WIDTH}" -h "${HEIGHT}" "${SRC_FILE}" -o "${OUT_FILE}"
+    fi
+  else
+    # Assume raster (e.g., PNG). Resize, preserve aspect ratio.
+    convert "${SRC_FILE}" -resize "${WIDTH}x${HEIGHT}" "${OUT_FILE}"
+  fi
+}
+ # }}}
+
 build_darwin_main() { # {{{
   if [[ ! -f "${SRC_PREFIX}src/${QUALITY}/resources/darwin/code.icns" ]]; then
-    rsvg-convert -w 655 -h 655 "icons/${QUALITY}/codium_cnl.svg" -o "code_logo.png"
+    generate_logo_png "${LOGO_PATH}" 655 655 "code_logo.png"
     composite "code_logo.png" -gravity center "icons/template_macos.png" "code_1024.png"
     convert "code_1024.png" -resize 512x512 code_512.png
     convert "code_1024.png" -resize 256x256 code_256.png
@@ -51,7 +81,7 @@ build_darwin_main() { # {{{
 } # }}}
 
 build_darwin_types() { # {{{
-  rsvg-convert -w 128 -h 128 "icons/${QUALITY}/codium_cnl_w80_b8.svg" -o "code_logo.png"
+  generate_logo_png "${LOGO_BORDER_PATH}" 128 128 "code_logo.png"
 
   for file in "${VSCODE_PREFIX}"vscode/resources/darwin/*; do
     if [[ -f "${file}" ]]; then
@@ -110,7 +140,14 @@ build_server() { # {{{
 
 build_windows_main() { # {{{
   if [[ ! -f "${SRC_PREFIX}src/${QUALITY}/resources/win32/code.ico" ]]; then
-    wget "https://raw.githubusercontent.com/VSCodium/icons/main/icons/win32/nobg/${COLOR}/paulo22s.ico" -O "${SRC_PREFIX}src/${QUALITY}/resources/win32/code.ico"
+    # Prefer generating from provided logo when available
+    mkdir -p "${SRC_PREFIX}src/${QUALITY}/resources/win32"
+    generate_logo_png "${LOGO_PATH}" 256 256 "code_logo.png"
+    convert "code_logo.png" -define icon:auto-resize=256,128,96,64,48,32,24,20,16 "${SRC_PREFIX}src/${QUALITY}/resources/win32/code.ico" || {
+      # Fallback to fetching stock icon if generation fails
+      wget "https://raw.githubusercontent.com/VSCodium/icons/main/icons/win32/nobg/${COLOR}/paulo22s.ico" -O "${SRC_PREFIX}src/${QUALITY}/resources/win32/code.ico"
+    }
+    rm -f code_logo.png
   fi
 } # }}}
 
@@ -130,16 +167,21 @@ build_windows_type() { # {{{
       convert -size "${IMG_SIZE}" "${IMG_BG_COLOR}" "${FILE_PATH}"
     fi
 
-    rsvg-convert -w "${LOGO_SIZE}" -h "${LOGO_SIZE}" "icons/${QUALITY}/codium_cnl.svg" -o "code_logo.png"
+    generate_logo_png "${LOGO_PATH}" "${LOGO_SIZE}" "${LOGO_SIZE}" "code_logo.png"
 
-    composite -gravity "${GRAVITY}" "code_logo.png" "${FILE_PATH}" "${FILE_PATH}"
+    # If GRAVITY looks like +X+Y offsets, use -geometry; otherwise, use -gravity
+    if [[ "${GRAVITY}" =~ ^[+-][0-9]+[+-][0-9]+$ ]]; then
+      composite -geometry "${GRAVITY}" "code_logo.png" "${FILE_PATH}" "${FILE_PATH}"
+    else
+      composite -gravity "${GRAVITY}" "code_logo.png" "${FILE_PATH}" "${FILE_PATH}"
+    fi
   fi
 } # }}}
 
 build_windows_types() { # {{{
   mkdir -p "${SRC_PREFIX}src/${QUALITY}/resources/win32"
 
-  rsvg-convert -b "#F5F6F7" -w 64 -h 64 "icons/${QUALITY}/codium_cnl.svg" -o "code_logo.png"
+  generate_logo_png "${LOGO_PATH}" 64 64 "code_logo.png" "#F5F6F7"
 
   for file in "${VSCODE_PREFIX}"vscode/resources/win32/*.ico; do
     if [[ -f "${file}" ]]; then

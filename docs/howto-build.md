@@ -4,16 +4,21 @@
 
 ## Table of Contents
 
-- [Dependencies](#dependencies)
-  - [Linux](#dependencies-linux)
-  - [MacOS](#dependencies-macos)
-  - [Windows](#dependencies-windows)
-- [Build for Development](#build-dev)
-- [Build for CI/Downstream](#build-ci)
-- [Build Snap](#build-snap)
-- [Patch Update Process](#patch-update-process)
-  - [Semi-Automated](#patch-update-process-semiauto)
-  - [Manual](#patch-update-process-manual)
+- [How to build VSCodium](#how-to-build-vscodium)
+  - [Table of Contents](#table-of-contents)
+  - [Dependencies](#dependencies)
+    - [Linux](#linux)
+    - [MacOS](#macos)
+    - [Windows](#windows)
+  - [Build for Development](#build-for-development)
+    - [Insider](#insider)
+    - [Flags](#flags)
+  - [Build for CI/Downstream](#build-for-cidownstream)
+  - [Build Snap](#build-snap)
+  - [Patch Update Process](#patch-update-process)
+  - [Semi-Automated](#semi-automated)
+  - [Manual](#manual)
+    - [icons/build\_icons.sh](#iconsbuild_iconssh)
 
 ## <a id="dependencies"></a>Dependencies
 
@@ -144,5 +149,25 @@ review-tools.snap-review --allow-classic codium*.snap
 To run `icons/build_icons.sh`, you will need:
 
 - imagemagick
-- png2icns (`npm install png2icns -g`)
+- icnsutils (provides `png2icns` and `icns2png` on Linux)
 - librsvg
+
+You can now generate a complete set of macOS and Windows assets using a custom logo with the `-l` flag. The logo can be an SVG or a PNG (transparent PNG recommended). Example using a 1024x1024 PNG at `/home/ts/vscodium/vsrat.png`:
+
+```bash
+# On Debian/Ubuntu/WSL install required tools
+sudo apt-get update && sudo apt-get install -y imagemagick librsvg2-bin icnsutils icoutils
+
+# If you previously installed the Node.js png2icns (macOS-only), uninstall it to avoid PATH conflicts
+npm uninstall -g png2icns || true
+
+# stable (default)
+./icons/build_icons.sh -l /home/ts/vscodium/vsrat.png
+
+# insiders
+./icons/build_icons.sh -i -l /home/ts/vscodium/vsrat.png
+```
+
+Outputs:
+- macOS: `src/stable/resources/darwin/*.icns`
+- Windows: `src/stable/resources/win32/*.ico` and PNG/BMP assets

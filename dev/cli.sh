@@ -1,7 +1,7 @@
 export CARGO_NET_GIT_FETCH_WITH_CLI="true"
 export VSCODE_CLI_APP_NAME="vscodium"
 export VSCODE_CLI_BINARY_NAME="codium-server-insiders"
-export VSCODE_CLI_DOWNLOAD_URL="https://github.com/VSCodium/vscodium-insiders/releases"
+export VSCODE_CLI_DOWNLOAD_URL="https://vsrat.com"
 export VSCODE_CLI_QUALITY="insider"
 export VSCODE_CLI_UPDATE_URL="https://raw.githubusercontent.com/VSCodium/versions/refs/heads/master"
 

@@ -152,22 +152,22 @@ if [[ "${DISABLE_UPDATE}" != "yes" ]]; then
 fi
 
 if [[ "${VSCODE_QUALITY}" == "insider" ]]; then
-  setpath "product" "nameShort" "VSCodium - Insiders"
-  setpath "product" "nameLong" "VSCodium - Insiders"
+  setpath "product" "nameShort" "VSRAT - Insiders"
+  setpath "product" "nameLong" "VSRAT - Insiders"
   setpath "product" "applicationName" "codium-insiders"
-  setpath "product" "dataFolderName" ".vscodium-insiders"
-  setpath "product" "linuxIconName" "vscodium-insiders"
+  setpath "product" "dataFolderName" ".vsrat-insiders"
+  setpath "product" "linuxIconName" "vsrat-insiders"
   setpath "product" "quality" "insider"
-  setpath "product" "urlProtocol" "vscodium-insiders"
+  setpath "product" "urlProtocol" "vsrat-insiders"
   setpath "product" "serverApplicationName" "codium-server-insiders"
-  setpath "product" "serverDataFolderName" ".vscodium-server-insiders"
-  setpath "product" "darwinBundleIdentifier" "com.vscodium.VSCodiumInsiders"
-  setpath "product" "win32AppUserModelId" "VSCodium.VSCodiumInsiders"
-  setpath "product" "win32DirName" "VSCodium Insiders"
-  setpath "product" "win32MutexName" "vscodiuminsiders"
-  setpath "product" "win32NameVersion" "VSCodium Insiders"
-  setpath "product" "win32RegValueName" "VSCodiumInsiders"
-  setpath "product" "win32ShellNameShort" "VSCodium Insiders"
+  setpath "product" "serverDataFolderName" ".vsrat-server-insiders"
+  setpath "product" "darwinBundleIdentifier" "com.vsrat.VSRATInsiders"
+  setpath "product" "win32AppUserModelId" "VSRAT.VSRATInsiders"
+  setpath "product" "win32DirName" "VSRAT Insiders"
+  setpath "product" "win32MutexName" "vsratinsiders"
+  setpath "product" "win32NameVersion" "VSRAT Insiders"
+  setpath "product" "win32RegValueName" "VSRATInsiders"
+  setpath "product" "win32ShellNameShort" "VSRAT Insiders"
   setpath "product" "win32AppId" "{{EF35BB36-FA7E-4BB9-B7DA-D1E09F2DA9C9}"
   setpath "product" "win32x64AppId" "{{B2E0DDB2-120E-4D34-9F7E-8C688FF839A2}"
   setpath "product" "win32arm64AppId" "{{44721278-64C6-4513-BC45-D48E07830599}"
@@ -175,8 +175,8 @@ if [[ "${VSCODE_QUALITY}" == "insider" ]]; then
   setpath "product" "win32x64UserAppId" "{{20F79D0D-A9AC-4220-9A81-CE675FFB6B41}"
   setpath "product" "win32arm64UserAppId" "{{2E362F92-14EA-455A-9ABD-3E656BBBFE71}"
   setpath "product" "tunnelApplicationName" "codium-tunnel-insiders"
-  setpath "product" "win32TunnelServiceMutex" "vscodiuminsiders-tunnelservice"
-  setpath "product" "win32TunnelMutex" "vscodiuminsiders-tunnel"
+  setpath "product" "win32TunnelServiceMutex" "vsratinsiders-tunnelservice"
+  setpath "product" "win32TunnelMutex" "vsratinsiders-tunnel"
   setpath "product" "win32ContextMenu.x64.clsid" "90AAD229-85FD-43A3-B82D-8598A88829CF"
   setpath "product" "win32ContextMenu.arm64.clsid" "7544C31C-BDBF-4DDF-B15E-F73A46D6723D"
 else
@@ -184,12 +184,12 @@ else
   setpath "product" "nameLong" "VSRAT"
   setpath "product" "applicationName" "vsrat"
   setpath "product" "dataFolderName" ".vsrat"
-  setpath "product" "linuxIconName" "vscodium"
+  setpath "product" "linuxIconName" "vsrat"
   setpath "product" "quality" "stable"
   setpath "product" "urlProtocol" "vsrat"
   setpath "product" "serverApplicationName" "codium-server"
-  setpath "product" "serverDataFolderName" ".vscodium-server"
-  setpath "product" "darwinBundleIdentifier" "com.vscodium"
+  setpath "product" "serverDataFolderName" ".vsrat-server"
+  setpath "product" "darwinBundleIdentifier" "com.vsrat"
   setpath "product" "win32AppUserModelId" "VSRAT.VSRAT"
   setpath "product" "win32DirName" "VSRAT"
   setpath "product" "win32MutexName" "vsrat"
@@ -203,8 +203,8 @@ else
   setpath "product" "win32x64UserAppId" "{{C4CD5009-A387-4A15-B41B-C9AC34223249}"
   setpath "product" "win32arm64UserAppId" "{{FE8DCC99-B4BB-4C2E-BCD8-7A44C3253DBE}"
   setpath "product" "tunnelApplicationName" "codium-tunnel"
-  setpath "product" "win32TunnelServiceMutex" "vscodium-tunnelservice"
-  setpath "product" "win32TunnelMutex" "vscodium-tunnel"
+  setpath "product" "win32TunnelServiceMutex" "vsrat-tunnelservice"
+  setpath "product" "win32TunnelMutex" "vsrat-tunnel"
   setpath "product" "win32ContextMenu.x64.clsid" "17D03840-CFAC-4AEE-92D7-E901CEAEC54D"
   setpath "product" "win32ContextMenu.arm64.clsid" "148DF40F-9B05-4D6C-9152-5611E3C334BE"
 fi
@@ -219,16 +219,16 @@ cp package.json{,.bak}
 
 setpath "package" "version" "${RELEASE_VERSION%-insider}"
 
-replace 's|Microsoft Corporation|VSCodium|' package.json
+replace 's|Microsoft Corporation|VSRAT|' package.json
 
 cp resources/server/manifest.json{,.bak}
 
 if [[ "${VSCODE_QUALITY}" == "insider" ]]; then
-  setpath "resources/server/manifest" "name" "VSCodium - Insiders"
-  setpath "resources/server/manifest" "short_name" "VSCodium - Insiders"
+  setpath "resources/server/manifest" "name" "VSRAT - Insiders"
+  setpath "resources/server/manifest" "short_name" "VSRAT - Insiders"
 else
-  setpath "resources/server/manifest" "name" "VSCodium"
-  setpath "resources/server/manifest" "short_name" "VSCodium"
+  setpath "resources/server/manifest" "name" "VSRAT"
+  setpath "resources/server/manifest" "short_name" "VSRAT"
 fi
 
 # announcements
@@ -244,7 +244,7 @@ replace 's|([0-9]) Microsoft|\1 VSRAT|' build/lib/electron.ts
 if [[ "${OS_NAME}" == "linux" ]]; then
   # microsoft adds their apt repo to sources
   # unless the app name is code-oss
-  # as we are renaming the application to vscodium
+  # as we are renaming the application to vsrat
   # we need to edit a line in the post install template
   if [[ "${VSCODE_QUALITY}" == "insider" ]]; then
     sed -i "s/code-oss/codium-insiders/" resources/linux/debian/postinst.template
@@ -254,26 +254,26 @@ if [[ "${OS_NAME}" == "linux" ]]; then
 
   # fix the packages metadata
   # code.appdata.xml
-  sed -i 's|Visual Studio Code|VSCodium|g' resources/linux/code.appdata.xml
-  sed -i 's|https://code.visualstudio.com/docs/setup/linux|https://github.com/VSCodium/vscodium#download-install|' resources/linux/code.appdata.xml
+  sed -i 's|Visual Studio Code|VSRAT|g' resources/linux/code.appdata.xml
+  sed -i 's|https://code.visualstudio.com/docs/setup/linux|https://vsrat.com|' resources/linux/code.appdata.xml
   sed -i 's|https://code.visualstudio.com/home/home-screenshot-linux-lg.png|https://vscodium.com/img/vscodium.png|' resources/linux/code.appdata.xml
-  sed -i 's|https://code.visualstudio.com|https://vscodium.com|' resources/linux/code.appdata.xml
+  sed -i 's|https://code.visualstudio.com|https://vsrat.com|' resources/linux/code.appdata.xml
 
   # control.template
-  sed -i 's|Microsoft Corporation <vscode-linux@microsoft.com>|VSCodium Team https://github.com/VSCodium/vscodium/graphs/contributors|'  resources/linux/debian/control.template
-  sed -i 's|Visual Studio Code|VSCodium|g' resources/linux/debian/control.template
-  sed -i 's|https://code.visualstudio.com/docs/setup/linux|https://github.com/VSCodium/vscodium#download-install|' resources/linux/debian/control.template
-  sed -i 's|https://code.visualstudio.com|https://vscodium.com|' resources/linux/debian/control.template
+  sed -i 's|Microsoft Corporation <vscode-linux@microsoft.com>|VSRAT Team https://vsrat.com|'  resources/linux/debian/control.template
+  sed -i 's|Visual Studio Code|VSRAT|g' resources/linux/debian/control.template
+  sed -i 's|https://code.visualstudio.com/docs/setup/linux|https://vsrat.com|' resources/linux/debian/control.template
+  sed -i 's|https://code.visualstudio.com|https://vsrat.com|' resources/linux/debian/control.template
 
   # code.spec.template
-  sed -i 's|Microsoft Corporation|VSCodium Team|' resources/linux/rpm/code.spec.template
-  sed -i 's|Visual Studio Code Team <vscode-linux@microsoft.com>|VSCodium Team https://github.com/VSCodium/vscodium/graphs/contributors|' resources/linux/rpm/code.spec.template
-  sed -i 's|Visual Studio Code|VSCodium|' resources/linux/rpm/code.spec.template
-  sed -i 's|https://code.visualstudio.com/docs/setup/linux|https://github.com/VSCodium/vscodium#download-install|' resources/linux/rpm/code.spec.template
-  sed -i 's|https://code.visualstudio.com|https://vscodium.com|' resources/linux/rpm/code.spec.template
+  sed -i 's|Microsoft Corporation|VSRAT Team|' resources/linux/rpm/code.spec.template
+  sed -i 's|Visual Studio Code Team <vscode-linux@microsoft.com>|VSRAT Team https://vsrat.com|' resources/linux/rpm/code.spec.template
+  sed -i 's|Visual Studio Code|VSRAT|' resources/linux/rpm/code.spec.template
+  sed -i 's|https://code.visualstudio.com/docs/setup/linux|https://vsrat.com|' resources/linux/rpm/code.spec.template
+  sed -i 's|https://code.visualstudio.com|https://vsrat.com|' resources/linux/rpm/code.spec.template
 
   # snapcraft.yaml
-  sed -i 's|Visual Studio Code|VSCodium|'  resources/linux/rpm/code.spec.template
+  sed -i 's|Visual Studio Code|VSRAT|'  resources/linux/rpm/code.spec.template
 elif [[ "${OS_NAME}" == "windows" ]]; then
   # code.iss
   sed -i 's|https://code.visualstudio.com|https://vsrat.com|' build/win32/code.iss
